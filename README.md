@@ -66,6 +66,10 @@ data/nexus_factory_presets.json
 generate_assets.py  # regenrador de los gráficos (PIL)
 ```
 
+## Apoyar el proyecto
+
+[![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Invítame%20un%20café&emoji=☕&slug=lica&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/lica)
+
 ## Licencia
 
 GPL-3.0 — ver el archivo `LICENSE`.
