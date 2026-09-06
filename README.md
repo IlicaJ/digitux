@@ -1,9 +1,11 @@
 # DigiTux v2
 
-![DigiTux](digitux-banner.jpeg)
+![DigiTux](digitux-banner.png)
 
 Editor para **DigiTech RP360 / RP360XP** en Linux, con **gráficos propios
 caricaturizados** (libres de material con copyright).
+
+![Captura de pantalla](screenshot.png)
 
 Esta es la versión apta para publicar en GitHub: el backend y las reglas del
 dispositivo se deducen por ingeniería inversa (protocolo serie JSON), y todas las
