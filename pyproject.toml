@@ -1,0 +1,19 @@
+[project]
+name = "digitux"
+version = "0.2.0"
+description = "DigiTux — RP360/RP360XP editor for Linux"
+requires-python = ">=3.9"
+dependencies = [
+    "pyserial>=3.5",
+    "PyQt5>=5.15",
+]
+
+[project.scripts]
+digitux = "nexus.ui.main:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["nexus*"]

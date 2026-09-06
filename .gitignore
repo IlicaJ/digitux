@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+ejemplo/
+*.jpeg
+*.jpg
+*.dmg
+*.pkg
