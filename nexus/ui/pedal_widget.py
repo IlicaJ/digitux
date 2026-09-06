@@ -1,11 +1,10 @@
 """Pedal widget — stylized cartoon pedal with rotary knobs + ON/OFF LED."""
-from pathlib import Path
-
 from PyQt5.QtWidgets import QWidget, QMenu
 from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QFont
 
 from .knob import Knob
+from ..runtime import img_path
 
 SRC_W = 220.0
 SRC_H = 364.0
@@ -39,7 +38,7 @@ class PedalWidget(QWidget):
         fn = effect["image"] if effect else None
         if not fn:
             return
-        base = Path(__file__).parents[1] / "assets" / "img"
+        base = img_path()
         for sub in ("amps", "pedals", "cabs"):
             fp = base / sub / fn
             if fp.exists():

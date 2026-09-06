@@ -3,8 +3,6 @@
   [ AMP image (wide)          ]   [ LED / Bypass lever ]
   [ GAIN BASS MID TREB LEVEL  ]   [ Cabinet image+combo ]
 """
-from pathlib import Path
-
 from PyQt5.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QComboBox,
 )
@@ -12,6 +10,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QFont
 
 from .knob import Knob
+from ..runtime import img_path
 
 AMP_DISP_W = 760
 AMP_DISP_H = 252
@@ -43,7 +42,7 @@ class AmpView(QWidget):
         self._load_bits()
 
     def _load_bits(self):
-        base = Path(__file__).parents[1] / "assets" / "img" / "amps"
+        base = img_path("amps")
         for name in ("LED-red_ON.png", "LED-red_OFF.png",
                      "ToggleSwitch_Up.png", "ToggleSwitch_Down.png"):
             fp = base / name
@@ -70,7 +69,7 @@ class AmpView(QWidget):
         effect = self.db.by_address(addr)
         fn = effect.get("image") if effect else None
         if fn:
-            fp = Path(__file__).parents[1] / "assets" / "img" / "amps" / fn
+            fp = img_path("amps", fn)
             if fp.exists():
                 pm = QPixmap(str(fp))
                 if not pm.isNull():
@@ -253,7 +252,7 @@ class AmpCabBlock(QWidget):
         self.cab_lbl.setText("")
         fn = cab.get("image")
         if fn:
-            fp = Path(__file__).parents[1] / "assets" / "img" / "cabs" / fn
+            fp = img_path("cabs", fn)
             if fp.exists():
                 pm = QPixmap(str(fp))
                 if not pm.isNull():

@@ -1,6 +1,5 @@
 """Main window — faithful Nexus clone for Linux."""
 import json
-from pathlib import Path
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
@@ -14,6 +13,7 @@ from ..effects_db import EffectsDB
 from .pedalboard_view import PedalboardView
 from .amp_cab_block import AmpCabBlock
 from .control_panel import ControlPanel
+from ..runtime import img_path, data_path
 
 
 class _TitleBar(QWidget):
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
 
         # DigiTux logo
         logo_lbl = QLabel()
-        logo_path = Path(__file__).parents[1] / "assets" / "img" / "menu" / "digitux_logo.png"
+        logo_path = img_path("menu", "digitux_logo.png")
         if logo_path.exists():
             pm = QPixmap(str(logo_path))
             if not pm.isNull():
@@ -241,7 +241,7 @@ class MainWindow(QMainWindow):
         self._on_tab(self.tabs.currentIndex())
 
     def _load_library(self):
-        path = Path(__file__).parents[2] / "data" / "nexus_factory_presets.json"
+        path = data_path("nexus_factory_presets.json")
         if path.exists():
             self.library_presets = json.loads(path.read_text())
         self._on_tab(2)

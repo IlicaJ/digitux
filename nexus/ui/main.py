@@ -1,12 +1,12 @@
 """Entry point for the DigiTux app."""
 import sys
-from pathlib import Path
 
 from PyQt5.QtWidgets import QApplication, QSplashScreen
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
 
 from .main_window import MainWindow
+from ..runtime import img_path
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
 
     # splash
     splash = None
-    splash_path = Path(__file__).parents[1] / "assets" / "img" / "splash" / "digitux_splash.png"
+    splash_path = img_path("splash", "digitux_splash.png")
     if splash_path.exists():
         pm = QPixmap(str(splash_path))
         if not pm.isNull():

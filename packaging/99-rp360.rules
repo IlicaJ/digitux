@@ -1,0 +1,2 @@
+# DigiTech RP360 / RP360XP (VID 1210 : PID 0032)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1210", ATTRS{idProduct}=="0032", MODE="0666", SYMLINK+="rp360"

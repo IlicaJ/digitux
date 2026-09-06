@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DigiTux
+GenericName=RP360 Editor
+Comment=Editor for DigiTech RP360/RP360XP
+Exec=digitux
+Icon=digitux
+Terminal=false
+Categories=AudioVideo;Audio;Music;
+Keywords=guitar;effects;pedal;digitech;rp360;

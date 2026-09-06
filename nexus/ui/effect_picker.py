@@ -1,12 +1,11 @@
 """Graphical effect picker — gallery of pedals/amps by category (like Nexus)."""
-from pathlib import Path
-
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QGridLayout,
     QWidget, QLabel, QScrollArea, QPushButton, QFrame, QButtonGroup,
 )
 from PyQt5.QtCore import Qt, QSize, pyqtSignal
 from PyQt5.QtGui import QPixmap, QIcon
+from ..runtime import img_path
 
 
 CATEGORIES = [
@@ -121,7 +120,7 @@ class EffectPicker(QDialog):
             return
         effects = self.db.by_category(db_cat)
         cols = 4
-        base = Path(__file__).parents[1] / "assets" / "img"
+        base = img_path()
         for i, e in enumerate(effects):
             card = _EffectCard(e, base)
             card.clicked.connect(self._on_pick)

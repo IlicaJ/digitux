@@ -33,6 +33,18 @@ pocos colores planos con contorno.
 
 ## Instalación
 
+Elige el formato que te convenga (release en [Releases](https://github.com/IlicaJ/digitux/releases)):
+
+| Formato | Archivo | Para quién |
+|---|---|---|
+| **Binario** | `digitux-x86_64` | Linux x86_64 sin instalar nada (ejecutar directamente) |
+| **AppImage** | `DigiTux-x86_64.AppImage` | Archivo único portable |
+| **.deb** | `digitux_0.2.0-1_all.deb` | Ubuntu / Debian / Mint (`sudo apt install ./digitux_...deb`) |
+| **pip** | `pip install .` | Desarrolladores / usuarios de pip |
+
+Binario y AppImage: `chmod +x` y ejecutar. El `.deb` instala la regla udev
+(`/etc/udev/rules.d/99-rp360.rules`) y el acceso directo al menú automáticamente.
+
 ```bash
 # vía pip (desde el repo)
 pip install .

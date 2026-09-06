@@ -3,8 +3,6 @@
 Displays the 10 fixed chain positions in order (0..9), with empty-slot placeholders,
 and supports drag-and-drop to reorder the chain.
 """
-from pathlib import Path
-
 from PyQt5.QtWidgets import (
     QWidget, QHBoxLayout, QScrollArea, QLabel, QPushButton,
 )
@@ -13,6 +11,7 @@ from PyQt5.QtGui import QPainter, QPixmap, QColor, QDrag
 
 from .pedal_widget import PedalWidget
 from .pedal_widget import DISP_W, DISP_H
+from ..runtime import img_path
 
 MIME = "application/x-nexus-slot"
 
@@ -26,7 +25,7 @@ class AmpPin(QWidget):
         self.slot = slot
         self.setFixedSize(60, 258)
         self._icon = None
-        fp = Path(__file__).parents[1] / "assets" / "img" / "pedalboard" / "Amp_Icon_SignalChain.png"
+        fp = img_path("pedalboard", "Amp_Icon_SignalChain.png")
         if fp.exists():
             pm = QPixmap(str(fp))
             if not pm.isNull():
@@ -66,7 +65,7 @@ class _Carpet(QWidget):
     def __init__(self):
         super().__init__()
         self._bg = None
-        fp = Path(__file__).parents[1] / "assets" / "img" / "pedalboard" / "pedalboard_bg.png"
+        fp = img_path("pedalboard", "pedalboard_bg.png")
         if fp.exists():
             pm = QPixmap(str(fp))
             if not pm.isNull():
@@ -93,7 +92,7 @@ class _EmptySlot(QLabel):
         super().__init__()
         self.index = index
         self._bg = None
-        fp = Path(__file__).parents[1] / "assets" / "img" / "pedals" / "Empty-pedal.png"
+        fp = img_path("pedals", "Empty-pedal.png")
         if fp.exists():
             pm = QPixmap(str(fp))
             if not pm.isNull():

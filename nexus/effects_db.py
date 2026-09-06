@@ -7,9 +7,11 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+from .runtime import _package_root
+
 log = logging.getLogger(__name__)
 
-_DEFAULT_PATH = Path(__file__).parent / "rp360_effects.json"
+_DEFAULT_PATH = _package_root() / "nexus" / "rp360_effects.json"
 
 # Natural (default) signal-chain position for each effect category. The RP360/XP
 # chain is: Wah, Compressor, Distortion, Amp, EQ/Gate, Volume/Mod, Delay, Reverb.

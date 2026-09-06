@@ -4,8 +4,12 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+deb_dist/
 ejemplo/
 *.jpeg
 *.jpg
 *.dmg
 *.pkg
+*.AppImage
+*.deb
+*.tar.gz
