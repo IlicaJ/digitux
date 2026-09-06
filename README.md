@@ -1,5 +1,7 @@
 # DigiTux v2
 
+![DigiTux](digitux-banner.jpeg)
+
 Editor para **DigiTech RP360 / RP360XP** en Linux, con **gráficos propios
 caricaturizados** (libres de material con copyright).
 
