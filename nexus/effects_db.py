@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+from .model import Ctrl, FxSlot, Preset
 from .runtime import _package_root
 
 log = logging.getLogger(__name__)
@@ -147,6 +148,25 @@ class EffectsDB:
         The list index matches the CABINET param value sent by the device.
         """
         return [c["displayName"] for c in sorted(self._cabinets, key=lambda c: c["id"])]
+
+    def build_reset_preset(self, name: str) -> Preset:
+        """Build an amp-only user preset with the first amp and cabinet."""
+        amps = self.by_category("Amplifier")
+        cabinet = self.cabinet_at(0)
+        if not amps or cabinet is None:
+            raise ValueError("No hay amplificador o gabinete predeterminado")
+        slot_data = self.build_slot_data(amps[0]["address"])
+        if slot_data is None or "fx" not in slot_data:
+            raise ValueError("No se pudo crear el amplificador predeterminado")
+        slot_data["ENABLE"] = 1
+        slot_data["fx"]["CABINET"] = cabinet["id"]
+        slot_index = natural_positions("Amplifier")[0]
+        return Preset(
+            name=name,
+            slots={slot_index: FxSlot.from_json(slot_index, slot_data)},
+            ctrls={ctrl: Ctrl() for ctrl in Preset.CTRL_NAMES},
+            chain_order=[slot_index],
+        )
 
     def param_range(self, address: str, param: str) -> tuple[int, int]:
         """Return (min, max) for a parameter. Raises KeyError if not found."""
