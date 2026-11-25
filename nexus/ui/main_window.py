@@ -538,7 +538,18 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            self._refresh_names()
+            names = list(getattr(self, "user_names", []))
+            if index >= len(names):
+                names.extend([None] * (index + 1 - len(names)))
+            names[index] = saved.name
+            self.user_names = names
+            if self.tabs.currentIndex() == 0:
+                item = self.list.item(index)
+                if item is None:
+                    self._on_tab(0)
+                else:
+                    item.setText(f"{index+1:2d}. {saved.name or '— vacío —'}")
+                self._filter(self.search.text())
         except Exception as e:
             self.status.showMessage(f"Preset User {slot} restablecido; error al actualizar: {e}", 8000)
             return
