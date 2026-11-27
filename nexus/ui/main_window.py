@@ -1,16 +1,17 @@
 """Main window — faithful Nexus clone for Linux."""
 import json
+from pathlib import Path
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-    QListWidget, QLineEdit, QTabBar, QSplitter, QMessageBox, QStatusBar,
+    QListWidget, QLineEdit, QTabBar, QSplitter, QMessageBox, QStatusBar, QMenu,
 )
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QObject
 from PyQt5.QtGui import QColor, QPalette, QFont, QPixmap, QPainter, QLinearGradient
 
 from ..device import Device
 from ..effects_db import EffectsDB
-from .pedalboard_view import PedalboardView
+from .pedalboard_view import PedalboardView, reordered_slots
 from .amp_cab_block import AmpCabBlock
 from .control_panel import ControlPanel
 from ..runtime import img_path, data_path
@@ -202,6 +203,8 @@ class MainWindow(QMainWindow):
             "QListWidget::item:hover{background:#333;}"
         )
         self.list.itemDoubleClicked.connect(self._on_select)
+        self.list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.list.customContextMenuRequested.connect(self._preset_context_menu)
         lay.addWidget(self.list, 1)
 
         self.library_presets = []
@@ -306,6 +309,21 @@ class MainWindow(QMainWindow):
             item = self.list.item(i)
             item.setHidden(text.lower() not in item.text().lower())
 
+    def _preset_context_menu(self, pos):
+        if self.tabs.currentIndex() != 0:
+            return
+        item = self.list.itemAt(pos)
+        if item is None:
+            return
+        index = self.list.row(item)
+        if index >= len(getattr(self, "user_names", [])) or not self.user_names[index]:
+            return
+        self.list.setCurrentItem(item)
+        menu = QMenu(self)
+        menu.addAction("Copy", lambda: self._copy_user_preset(index))
+        menu.addAction("Delete...", lambda: self._delete_user_preset_at(index))
+        menu.exec_(self.list.viewport().mapToGlobal(pos))
+
     # ------------------------------------------------------------- actions
     def _build_menubar(self):
         mb = self.menuBar()
@@ -319,6 +337,7 @@ class MainWindow(QMainWindow):
         p = mb.addMenu("Preset")
         p.addAction("Store New...", self._store_new)
         p.addAction("Quick Store", self._quick_store)
+        p.addAction("Delete User Preset...", self._delete_user_preset)
         p.addAction("Copy", self._copy)
 
     def _change_model(self, slot):
@@ -460,10 +479,95 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.status.showMessage(f"Error: {e}", 5000)
 
-    def _copy(self):
-        import json as _json
-        self._clipboard = _json.dumps({"preset": self.preset.to_json()})
+    def _delete_user_preset(self):
+        from PyQt5.QtWidgets import QInputDialog
+
+        default_slot = 1
+        if self.tabs.currentIndex() == 0:
+            selected = self.list.currentRow()
+            if selected >= 0:
+                default_slot = selected + 1
+
+        slot, ok = QInputDialog.getInt(
+            self, "Delete User Preset", "Slot (1-99):",
+            default_slot, 1, 99
+        )
+        if not ok:
+            return
+        self._delete_user_preset_at(slot - 1)
+
+    def _delete_user_preset_at(self, index):
+        slot = index + 1
+        name = ""
+        if 0 <= index < len(getattr(self, "user_names", [])):
+            name = self.user_names[index] or ""
+        label = f'User {slot} ("{name}")' if name else f"User {slot}"
+
+        reply = QMessageBox.question(
+            self,
+            "Delete User Preset",
+            f"Reemplazar {label} por «Preset {slot}» con el amplificador y gabinete "
+            "predeterminados, sin otros efectos? La posición no quedará vacía. "
+            "El preset cargado en el editor no cambiará. Esta operación no se puede deshacer.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+
+        try:
+            replacement = self.db.build_reset_preset(f"Preset {slot}")
+            self.dev.write_user_preset(index, replacement)
+        except Exception as e:
+            self.status.showMessage(f"Error al eliminar: {e}", 5000)
+            return
+
+        try:
+            saved = self.dev.get_user_preset(index)
+            expected_amp = next(iter(replacement.slots.values()))
+            if (len(saved.slots) != 1
+                    or (amp := next(iter(saved.slots.values()))).model != expected_amp.model
+                    or any(amp.params.get(k) != v for k, v in expected_amp.params.items())
+                    or not amp.enable
+                    or any(ctrl.lnk for ctrl in saved.ctrls.values())
+                    or saved.name != replacement.name
+                    or saved.prs_levl != replacement.prs_levl):
+                raise ValueError("el dispositivo no devolvió el preset predeterminado")
+        except Exception as e:
+            self.status.showMessage(f"Preset User {slot}: escritura enviada; error al verificar: {e}", 8000)
+            return
+
+        try:
+            names = list(getattr(self, "user_names", []))
+            if index >= len(names):
+                names.extend([None] * (index + 1 - len(names)))
+            names[index] = saved.name
+            self.user_names = names
+            if self.tabs.currentIndex() == 0:
+                item = self.list.item(index)
+                if item is None:
+                    self._on_tab(0)
+                else:
+                    item.setText(f"{index+1:2d}. {saved.name or '— vacío —'}")
+                self._filter(self.search.text())
+        except Exception as e:
+            self.status.showMessage(f"Preset User {slot} restablecido; error al actualizar: {e}", 8000)
+            return
+        self.status.showMessage(f"Preset User {slot} restablecido")
+
+    def _copy_user_preset(self, index):
+        try:
+            preset = self.dev.get_user_preset(index)
+            self._copy_preset(preset)
+        except Exception as e:
+            self.status.showMessage(f"Error al copiar: {e}", 5000)
+
+    def _copy_preset(self, preset):
+        self._clipboard = json.dumps({"preset": preset.to_json()})
         self.status.showMessage("Preset copiado al portapapeles interno")
+
+    def _copy(self):
+        self._copy_preset(self.preset)
 
     def _store(self):
         i = self.list.currentRow()
@@ -522,10 +626,9 @@ class MainWindow(QMainWindow):
     def _reorder(self, src, target):
         """Reorder the chain: move the effect at slot `src` to position `target`."""
         try:
-            order = list(range(10))
-            item = order.pop(src)
-            order.insert(target, item)
-            occupied = [i for i in order if i in self.preset.slots]
+            occupied = reordered_slots(self.preset.slots, src, target)
+            if occupied == sorted(self.preset.slots):
+                return
             self.dev.reorder_chain(occupied)
             self._reload()
         except Exception as e:

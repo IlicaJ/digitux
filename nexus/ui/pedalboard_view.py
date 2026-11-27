@@ -4,9 +4,9 @@ Displays the 10 fixed chain positions in order (0..9), with empty-slot placehold
 and supports drag-and-drop to reorder the chain.
 """
 from PyQt5.QtWidgets import (
-    QWidget, QHBoxLayout, QScrollArea, QLabel, QPushButton,
+    QWidget, QHBoxLayout, QScrollArea, QLabel, QPushButton, QLayout,
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QMimeData
+from PyQt5.QtCore import Qt, pyqtSignal, QMimeData, QTimer
 from PyQt5.QtGui import QPainter, QPixmap, QColor, QDrag
 
 from .pedal_widget import PedalWidget
@@ -14,6 +14,15 @@ from .pedal_widget import DISP_W, DISP_H
 from ..runtime import img_path
 
 MIME = "application/x-nexus-slot"
+
+
+def reordered_slots(slots, source, target):
+    """Return occupied indices in their requested order."""
+    if source not in slots or not 0 <= target < 10:
+        raise ValueError("Invalid chain position")
+    order = list(range(10))
+    order.insert(target, order.pop(source))
+    return [index for index in order if index in slots]
 
 
 class AmpPin(QWidget):
@@ -129,11 +138,14 @@ class PedalboardView(QScrollArea):
 
         self.container = _Carpet()
         self.layout = QHBoxLayout(self.container)
+        self.layout.setSizeConstraint(QLayout.SetMinimumSize)
         self.layout.setContentsMargins(16, 20, 16, 10)
         self.layout.setSpacing(6)
         self.setWidget(self.container)
         self.pedals = {}          # slot index -> PedalWidget
         self.empties = []         # _EmptySlot widgets
+        self._occupied = set()
+        self._pending_reorder = None
         self.setAcceptDrops(True)
 
     def rebuild(self, slots, db):
@@ -144,6 +156,7 @@ class PedalboardView(QScrollArea):
                 item.widget().deleteLater()
         self.pedals.clear()
         self.empties.clear()
+        self._occupied = set(slots)
         self._slot_widgets = {}   # slot index -> widget (for drop calc)
 
         for idx in range(10):
@@ -172,12 +185,19 @@ class PedalboardView(QScrollArea):
         self.layout.addStretch()
 
     def _start_drag(self, source_index, widget):
+        if len(self._occupied) < 2:
+            return
+        self._pending_reorder = None
         drag = QDrag(widget)
         mime = QMimeData()
         mime.setData(MIME, str(source_index).encode())
         drag.setMimeData(mime)
         drag.setPixmap(widget.grab())
         drag.exec_(Qt.MoveAction)
+        if self._pending_reorder is not None:
+            src, target = self._pending_reorder
+            self._pending_reorder = None
+            QTimer.singleShot(0, lambda: self.reorder_requested.emit(src, target))
 
     def dragEnterEvent(self, e):
         if e.mimeData().hasFormat(MIME):
@@ -195,10 +215,18 @@ class PedalboardView(QScrollArea):
         if not e.mimeData().hasFormat(MIME):
             e.ignore()
             return
-        src = int(e.mimeData().data(MIME).data().decode())
-        target = self._slot_at_x(e.pos().x())
-        if target is not None and target != src:
-            self.reorder_requested.emit(src, target)
+        try:
+            src = int(e.mimeData().data(MIME).data().decode())
+        except (ValueError, UnicodeDecodeError):
+            e.ignore()
+            return
+        target = self._slot_at_x(self.container.mapFrom(self.viewport(), e.pos()).x())
+        if src not in self._occupied or target is None:
+            e.ignore()
+            return
+        order = reordered_slots(self._occupied, src, target)
+        if order != sorted(self._occupied):
+            self._pending_reorder = (src, target)
         e.acceptProposedAction()
 
     def _slot_at_x(self, x):

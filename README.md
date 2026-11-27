@@ -28,8 +28,13 @@ pocos colores planos con contorno.
   y **drag-and-drop para reordenar**.
 - Selector gráfico contextual de efectos (una categoría por posición).
 - Panel de control: Stompbox, Expression Link, LFO Link, Wah Settings.
-- Preset Level, menú (Backup/Restore/Import/Export/Store New/Quick Store/Copy).
+- Preset Level, menú (Backup/Restore/Import/Export/Store New/Quick Store/Delete/Copy).
 - Pestañas User / Factory / Library (99 presets).
+- Clic derecho en un preset User para copiarlo al portapapeles interno o
+  restablecerlo previa confirmación. Al eliminarlo se sobrescribe la posición
+  con un preset llamado «Preset N» (N es el número de la posición), sin pedales
+  y con el primer amplificador y gabinete; la posición no queda vacía. Todavía
+  no hay una acción de pegar.
 
 ## Instalación
 

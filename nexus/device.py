@@ -300,6 +300,14 @@ class Device:
             "mc", path="preset", value=f"banks/{BANK_USER}/{index}"
         )
 
+    def write_user_preset(self, index: int, preset: Preset) -> None:
+        """Replace one user slot without changing the active edit buffer."""
+        _check_index(index)
+        self._protocol.send_command(
+            "ssc", path=f"banks/{BANK_USER}", value={str(index): preset.to_json()},
+            timeout=15.0,
+        )
+
     def save_and_rename(self, index: int, name: str) -> None:
         """Rename then save to a user slot (Nexus 'store new')."""
         self.rename_preset(name)
@@ -335,10 +343,7 @@ class Device:
         """
         to_write = [(i, p) for i, p in enumerate(presets[:NUM_PRESETS]) if p is not None]
         for done, (i, p) in enumerate(to_write):
-            self._protocol.send_command(
-                "ssc", path="banks/user", value={str(i): p.to_json()},
-                timeout=15.0,
-            )
+            self.write_user_preset(i, p)
             if progress:
                 progress(done + 1, len(to_write))
         return len(to_write)

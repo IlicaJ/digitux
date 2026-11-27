@@ -10,8 +10,6 @@ setup(
     name="digitux",
     version="0.2.0",
     description="DigiTux — RP360/RP360XP editor for Linux",
-    long_description=open("README.md", encoding="utf-8").read(),
-    long_description_content_type="text/markdown",
     author="IlicaJ",
     url="https://github.com/IlicaJ/digitux",
     license="GPL-3.0",
